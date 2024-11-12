@@ -16,14 +16,62 @@ clock = pygame.time.Clock()
 
 # Define classes
 class Game():
-    def __init__(self):
-        self.monsters = []
+    def __init__(self, player, monster_group):
+        self.score = 0
+        self.round_number = 0
+
+        self.round_time = 0
+        self.frame_count = 0
+
+        self.player = player
+        self.monster_group = monster_group
+
+        self.next_level_sound = pygame.mixer.Sound("next_level.wav")
+
+        self.font = pygame.font.Font("Abrushow.ttf", 24)
+
+        blue_image = pygame.image.load("blue_monster.png")
+        green_image = pygame.image.load("green_monster.png")
+        purple_image = pygame.image.load("purple_monster.png")
+        yellow_image = pygame.image.load("yellow_monster.png")
+
+        self.target_monster_images = [blue_image, green_image, purple_image, yellow_image]
+
+        self.target_monster_type = random.randint(0, 3)
+        self.target_monster_image = self.target_monster_images[self.target_monster_type]
+
+        self.target_monster_rect = self.target_monster_image.get_rect()
+        self.target_monster_rect.centerx = WINDOW_WIDTH // 2
+        self.target_monster_rect.top = 30
 
     def update(self):
-        pass
+        self.round_time += 1
+        self.check_collisions()
 
     def draw(self):
-        pass
+        WHITE = (255, 255, 255)
+        BLUE = (20, 176, 235)
+        GREEN = (80, 201, 47)
+        PURPLE = (226, 73, 243)
+        YELLOW = (243, 157, 20)
+
+        colors = [BLUE, GREEN, PURPLE, YELLOW]
+
+        catch_text = self.font.render("Catch:", True, WHITE)
+        catch_rect = catch_text.get_rect()
+        catch_rect.center = (WINDOW_WIDTH // 2, 15)
+
+        score_text = self.font.render(f"Score: {self.score}", True, WHITE)
+        score_rect = score_text.get_rect()
+        score_rect.topleft = (10, 10)
+
+        lives_text = self.font.render(f"Lives: {self.player.lives}", True, WHITE)
+        lives_rect = lives_text.get_rect()
+        lives_rect.topleft = (10, 40)
+
+        round_text = self.font.render(f"Round: {self.round_number}", True, WHITE)
+        round_rect = round_text.get_rect()
+        round_rect.topleft = (10, 70)
 
     def check_collisions(self):
         pass
@@ -46,7 +94,8 @@ class Player(pygame.sprite.Sprite):
         super().__init__()
         self.image = pygame.image.load("knight.png")
         self.rect = self.image.get_rect()
-        self.rect.center = (WINDOW_WIDTH // 2, WINDOW_HEIGHT)
+        self.rect.centerx = WINDOW_WIDTH // 2
+        self.rect.bottom = WINDOW_HEIGHT
 
         self.lives = 3
         self.warps = 2
@@ -71,7 +120,8 @@ class Player(pygame.sprite.Sprite):
         if self.warps > 0:
             self.warps -= 1
             self.warp_sound.play()
-            self.rect.center = WINDOW_HEIGHT
+            self.rect.centerx = WINDOW_WIDTH // 2
+            self.rect.bottom = WINDOW_HEIGHT
 
     def reset(self):
         self.rect.center = (WINDOW_WIDTH // 2, WINDOW_HEIGHT)
@@ -86,8 +136,18 @@ class Monster(pygame.sprite.Sprite):
 
         self.type = monster_type
 
+        self.dx = random.choice([-1, 1])
+        self.dy = random.choice([-1, 1])
+        self.velocity = random.randint(2, 4)
+
     def update(self):
-        pass
+        self.rect.x += self.dx * self.velocity
+        self.rect.y += self.dy * self.velocity
+
+        if self.rect.left <= 0 or self.rect.right >= WINDOW_WIDTH:
+            self.dx *= -1
+        if self.rect.top <= 0 or self.rect.bottom >= WINDOW_HEIGHT:
+            self.dy *= -1
 
 
 my_player_group = pygame.sprite.Group()
@@ -96,7 +156,10 @@ my_player_group.add(my_player)
 
 my_monster_group = pygame.sprite.Group()
 
-my_game = Game()
+monster = Monster(500, 500, pygame.image.load("green_monster.png"), 1)
+my_monster_group.add(monster)
+
+my_game = Game(my_player, my_monster_group)
 
 # Main game loop
 running = True
@@ -108,7 +171,7 @@ while running:
     # Fill the display
     display_surface.fill((0, 0, 0))
 
-    #Update and draw sprites
+    # Update and draw sprites
     my_player_group.update()
     my_player_group.draw(display_surface)
     my_monster_group.update()
