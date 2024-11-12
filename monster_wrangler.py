@@ -43,24 +43,52 @@ class Game():
 
 class Player(pygame.sprite.Sprite):
     def __init__(self):
-        pass
+        super().__init__()
+        self.image = pygame.image.load("knight.png")
+        self.rect = self.image.get_rect()
+        self.rect.center = (WINDOW_WIDTH // 2, WINDOW_HEIGHT)
+
+        self.lives = 3
+        self.warps = 2
+        self.velocity = 8
+
+        self.catch_sound = pygame.mixer.Sound("catch.wav")
+        self.die_sound = pygame.mixer.Sound("die.wav")
+        self.warp_sound = pygame.mixer.Sound("warp.wav")
 
     def update(self):
-        pass
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_LEFT] and self.rect.left > 0:
+            self.rect.x -= self.velocity
+        if keys[pygame.K_RIGHT] and self.rect.right < WINDOW_WIDTH:
+            self.rect.x += self.velocity
+        if keys[pygame.K_UP] and self.rect.top > 0:
+            self.rect.y -= self.velocity
+        if keys[pygame.K_DOWN] and self.rect.bottom < WINDOW_HEIGHT:
+            self.rect.y += self.velocity
 
     def warp(self):
-        pass
+        if self.warps > 0:
+            self.warps -= 1
+            self.warp_sound.play()
+            self.rect.center = WINDOW_HEIGHT
 
     def reset(self):
-        pass
+        self.rect.center = (WINDOW_WIDTH // 2, WINDOW_HEIGHT)
 
 
 class Monster(pygame.sprite.Sprite):
-    def __init__(self):
-        pass
+    def __init__(self, x, y, image, monster_type):
+        super().__init__()
+        self.image = image
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (x, y)
+
+        self.type = monster_type
 
     def update(self):
         pass
+
 
 my_player_group = pygame.sprite.Group()
 my_player = Player()
@@ -68,6 +96,7 @@ my_player_group.add(my_player)
 
 my_monster_group = pygame.sprite.Group()
 
+my_game = Game()
 
 # Main game loop
 running = True
@@ -75,6 +104,17 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+
+    # Fill the display
+    display_surface.fill((0, 0, 0))
+
+    #Update and draw sprites
+    my_player_group.update()
+    my_player_group.draw(display_surface)
+    my_monster_group.update()
+    my_monster_group.draw(display_surface)
+    my_game.update()
+    my_game.draw()
 
     # Update the display
     pygame.display.update()
