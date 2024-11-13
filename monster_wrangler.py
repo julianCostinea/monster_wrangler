@@ -73,11 +73,59 @@ class Game():
         round_rect = round_text.get_rect()
         round_rect.topleft = (10, 70)
 
+        time_text = self.font.render(f"Time: {self.round_time // FPS}", True, WHITE)
+        time_rect = time_text.get_rect()
+        time_rect.topright = (WINDOW_WIDTH - 10, 10)
+
+        warp_text = self.font.render(f"Warps: {self.player.warps}", True, WHITE)
+        warp_rect = warp_text.get_rect()
+        warp_rect.topright = (WINDOW_WIDTH - 10, 40)
+
+        # Blit HUD
+        display_surface.blit(catch_text, catch_rect)
+        display_surface.blit(score_text, score_rect)
+        display_surface.blit(lives_text, lives_rect)
+        display_surface.blit(round_text, round_rect)
+        display_surface.blit(time_text, time_rect)
+        display_surface.blit(warp_text, warp_rect)
+        display_surface.blit(self.target_monster_image, self.target_monster_rect)
+
+        # Draw target monster
+        pygame.draw.rect(display_surface, colors[self.target_monster_type], (WINDOW_WIDTH // 2 - 32, 30, 64, 64), 2)
+        pygame.draw.rect(display_surface, colors[self.target_monster_type], (0, 100, WINDOW_WIDTH, WINDOW_HEIGHT - 200),
+                         2)
+
     def check_collisions(self):
-        pass
+        collided_monster = pygame.sprite.spritecollideany(self.player, self.monster_group)
+        if collided_monster:
+            if collided_monster.type == self.target_monster_type:
+                self.score += 100 * self.round_number
+                collided_monster.remove(self.monster_group)
+                if (self.monster_group):
+                    self.player.catch_sound.play()
+                    self.choose_new_target()
+                else:
+                    self.player.reset()
+                    self.next_level_sound.play()
+                    self.start_new_round()
+            else:
+                self.player.lives -= 1
+                self.player.die_sound.play()
+                self.player.reset()
+                if self.player.lives <= 0:
+                    self.pause_game()
+                    self.reset_game()
 
     def start_new_round(self):
-        pass
+        self.score += 1000 * self.round_number / (1 + self.round_time)
+
+        self.round_time = 0
+        self.frame_count = 0
+        self.round_number += 1
+        self.player.warps += 1
+
+        for monster in self.monster_group:
+            self.monster_group.remove(monster)
 
     def choose_new_target(self):
         pass
@@ -85,7 +133,7 @@ class Game():
     def pause_game(self):
         pass
 
-    def _reset_game(self):
+    def reset_game(self):
         pass
 
 
@@ -155,9 +203,6 @@ my_player = Player()
 my_player_group.add(my_player)
 
 my_monster_group = pygame.sprite.Group()
-
-monster = Monster(500, 500, pygame.image.load("green_monster.png"), 1)
-my_monster_group.add(monster)
 
 my_game = Game(my_player, my_monster_group)
 
