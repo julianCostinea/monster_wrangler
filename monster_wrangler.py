@@ -127,6 +127,22 @@ class Game():
         for monster in self.monster_group:
             self.monster_group.remove(monster)
 
+        for i in range(self.round_number):
+            self.monster_group.add(Monster(random.randint(0, WINDOW_WIDTH - 64),
+                                           random.randint(100, WINDOW_HEIGHT - 164),
+                                           self.target_monster_images[0], 0))
+            self.monster_group.add(Monster(random.randint(0, WINDOW_WIDTH - 64),
+                                           random.randint(100, WINDOW_HEIGHT - 164),
+                                           self.target_monster_images[1], 1))
+            self.monster_group.add(Monster(random.randint(0, WINDOW_WIDTH - 64),
+                                           random.randint(100, WINDOW_HEIGHT - 164),
+                                           self.target_monster_images[2], 2))
+            self.monster_group.add(Monster(random.randint(0, WINDOW_WIDTH - 64),
+                                           random.randint(100, WINDOW_HEIGHT - 164),
+                                           self.target_monster_images[3], 3))
+            self.choose_new_target()
+            self.next_level_sound.play()
+
     def choose_new_target(self):
         pass
 
@@ -172,7 +188,8 @@ class Player(pygame.sprite.Sprite):
             self.rect.bottom = WINDOW_HEIGHT
 
     def reset(self):
-        self.rect.center = (WINDOW_WIDTH // 2, WINDOW_HEIGHT)
+        self.rect.centerx = WINDOW_WIDTH // 2
+        self.rect.bottom = WINDOW_HEIGHT
 
 
 class Monster(pygame.sprite.Sprite):
@@ -205,6 +222,7 @@ my_player_group.add(my_player)
 my_monster_group = pygame.sprite.Group()
 
 my_game = Game(my_player, my_monster_group)
+my_game.start_new_round()
 
 # Main game loop
 running = True
